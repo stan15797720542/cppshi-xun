@@ -54,4 +54,13 @@ public:
 // 加载诗文
 vector<poem> loadpoems(const string& filename);
 
+//账号功能
+extern string current_user;
+void load_users();
+void save_users();
+bool register_user();
+bool login_user();
+bool change_username();
+bool change_password();
+void logout_user();
 #endif
