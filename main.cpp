@@ -28,6 +28,58 @@ int main() {
     setlocale(LC_ALL, "chs");
     srand((unsigned)time(NULL));
     vector<poem> poems = loadpoems("poems.txt");
+LOGIN:
+    load_users();
+    while (true) {
+        cout << "== 欢迎 ==\n";
+        cout << "1. 注册\n2. 登录\n3. 退出\n请选择：";
+        int c; cin >> c;
+        if (c == 1) {
+            register_user();
+        }
+        else if (c == 2) {
+            if (login_user()) break; 
+        }
+        else {
+            return 0;
+        }
+    }
+
+    while (true) {
+        cout << "\n== 主菜单 ==\n";
+        cout << "当前用户：" << current_user << "\n";
+        cout << "1. 账户管理\n";
+        cout << "2. 查看排名\n";
+        cout << "3. 开始游戏\n";
+        cout << "4. 退出\n";
+        cout << "请选择：";
+        int c; cin >> c;
+        if (c == 1) {
+            cout << "\n-- 账户管理 --\n";
+            cout << "1. 修改用户名\n";
+            cout << "2. 修改密码\n";
+            cout << "3. 注销并删除账户\n";
+            cout << "4. 返回\n";
+            cout << "请选择：";
+            int m; cin >> m;
+            if (m == 1) change_username();
+            else if (m == 2) change_password();
+            else if (m == 3) {
+                logout_user();
+                goto LOGIN;
+            }
+        }
+        else if (c == 2) {
+            cout << "查看排名功能尚未实现。\n";
+        }
+        else if (c == 3) {
+            break; 
+        }
+        else {
+            return 0;
+        }
+    }
+
     wcout << L"欢迎来到活字排诗游戏！" << endl;
     cout << "请选择游戏模式：\n1. 单人模式\n2. 多人模式\n输入模式编号：";
     int mode;
