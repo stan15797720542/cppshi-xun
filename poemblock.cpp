@@ -5,14 +5,14 @@
 #include <algorithm>
 #include <codecvt>
 #include <locale>
+#include <fstream>
+#include <unordered_map>
 
 using namespace std;
-
 
 poem::poem(const wstring& t, const vector<wstring>& l) : title(t), lines(l) {}
 
 characterblock::characterblock(wchar_t c) : character(c) {}
-
 
 movabletypeboard::move::move(const string& t, int a, int b, int c, int d) : type(t), a(a), b(b), c(c), d(d) {}
 
@@ -38,29 +38,6 @@ movabletypeboard::movabletypeboard(const poem& p, int boardsize) : size(boardsiz
     }
 
 }
-
-/*void movabletypeboard::shuffle() {
-    for (int i = 0; i < size - 1; ++i) {
-        int r1 = rand() % size;
-        int r2 = rand() % size;
-        swaprows(r1, r2);
-    }
-    for (int j = 0; j < size - 1; ++j) {
-        int c1 = rand() % size;
-        int c2 = rand() % size;
-        swapcols(c1, c2);
-    }
-
-    for (int k = 0; k < 3; ++k) {
-        int x1 = rand() % size;
-        int y1 = rand() % size;
-        int x2 = rand() % size;
-        int y2 = rand() % size;
-        if (isvalidcrosscenter(x1, y1) && isvalidcrosscenter(x2, y2)) {
-            swapcross(x1, y1, x2, y2);
-        }
-    }
-}*/
 
 void movabletypeboard::shuffle(int count) {
     int done = 0;
@@ -90,8 +67,6 @@ void movabletypeboard::shuffle(int count) {
         if (success) ++done;
     }
 }
-
-
 
 bool movabletypeboard::swaprows(int r1, int r2) {
     if (r1 < 0 || r2 < 0 || r1 >= size || r2 >= size) return false;
@@ -191,4 +166,96 @@ void movabletypeboard::reset() {
 
 vector<movabletypeboard::move> movabletypeboard::getshufflemoves() const {
     return shufflemoves;
+}
+
+unordered_map<string, string> users;
+string current_user = "";
+
+void load_users() {
+    users.clear();
+    ifstream fin("users.txt");
+    string line;
+    while (getline(fin, line)) {
+        auto pos = line.find(':');
+        if (pos != string::npos) {
+            string u = line.substr(0, pos);
+            string p = line.substr(pos + 1);
+            users[u] = p;
+        }
+    }
+}
+
+void save_users() {
+    ofstream fout("users.txt");
+    for (auto& kv : users) {
+        fout << kv.first << ":" << kv.second << "\n";
+    }
+}
+
+bool register_user() {
+    cout << "—— 注册 ——\n用户名：";
+    string u; cin >> u;
+    if (users.count(u)) {
+        cout << "用户名已存在！\n";
+        return false;
+    }
+    cout << "密码：";
+    string p; cin >> p;
+    users[u] = p;
+    save_users();
+    cout << "注册成功！请登录。\n";
+    return true;
+}
+
+bool login_user() {
+    cout << "—— 登录 ——\n用户名：";
+    string u; cin >> u;
+    cout << "密码：";
+    string p; cin >> p;
+    auto it = users.find(u);
+    if (it != users.end() && it->second == p) {
+        current_user = u;
+        cout << "登录成功，欢迎 " << u << "！\n";
+        return true;
+    }
+    cout << "用户名或密码错误！\n";
+    return false;
+}
+
+bool change_username() {
+    cout << "—— 修改用户名 ——\n新用户名：";
+    string nu; cin >> nu;
+    if (nu.empty() || users.count(nu)) {
+        cout << "用户名为空或已存在，取消操作。\n";
+        return false;
+    }
+    users[nu] = users[current_user];
+    users.erase(current_user);
+    current_user = nu;
+    save_users();
+    cout << "用户名修改成功，新用户名：" << nu << "\n";
+    return true;
+}
+
+bool change_password() {
+    cout << "—— 修改密码 ——\n请输入旧密码：";
+    string oldp; cin >> oldp;
+    if (users[current_user] != oldp) {
+        cout << "旧密码不正确，取消操作。\n";
+        return false;
+    }
+    cout << "请输入新密码：";
+    string newp; cin >> newp;
+    users[current_user] = newp;
+    save_users();
+    cout << "密码修改成功。\n";
+    return true;
+}
+
+void logout_user() {
+    if (current_user.empty()) return;
+    users.erase(current_user);
+    save_users();
+    cout << "账户已注销并删除： " << current_user << "\n";
+    current_user.clear();
 }
